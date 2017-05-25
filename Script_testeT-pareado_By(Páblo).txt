@@ -1,0 +1,51 @@
+#Pacotes Necessarios
+library(fBasics)
+library(ggplot2)
+library(reshape2)
+library(ggthemes)
+library(grid)
+
+#Impostação dos dados do Experimento
+dados <- read.csv2(file="https://raw.githubusercontent.com/pablodiasvieira/arquivos/master/stroop.csv",header=T, dec=",")
+diferenca=dados$Incongruentes-dados$Congruentes
+#Adição de novo data.frame com a diferença entre os grupos
+dados2<- data.frame(dados,diferenca) 
+
+#Utiliza esta parte somente para parte gráfica
+dados1 <- melt(dados, measure.vars = c("Congruentes", "Incongruentes"));colnames(dados1)<-c("Grupo","Tempo")
+
+#Estatísticas Descritivas
+k =basicStats(dados2) 
+rownames(k)<- c("Nobs","NAs","Minimo","Máximo",
+"1. Quartil","3. Quartil","Média","Mediana","Soma","Erro Médio",
+"ICinf Média","ICsup Média","Variância","DP","Skewness","Kurtose")
+round(k,digits=2) ## Visualização
+
+#Boxplot
+boxPlot(dados, col = "steelblue", title = TRUE)
+
+#Iniciando figura do hisgrama
+barfill <- "#4271AE" # parametros estéticos
+barlines <- "#1F3552"# parametros estéticos
+histograma <- ggplot(dados1, aes(x = Tempo)) +
+  geom_histogram(aes(y = ..count..), binwidth = 2,
+                 colour = barlines, fill = barfill) +
+  scale_x_continuous(name = "Tempos de Resposta") +
+  scale_y_continuous(name = "Frequência") +
+  ggtitle("Histograma de Frequências para Tempos de \nResposta por Grupos de Palavras") +
+  theme_bw() +
+  theme(axis.line = element_line(size=1, colour = "black"),
+        panel.grid.major = element_line(colour = "#d3d3d3"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(), panel.background = element_blank(),
+        plot.title = element_text(size = 14, family = "Tahoma", face = "bold"),
+        text=element_text(family="Tahoma"),
+        axis.text.x=element_text(colour="black", size = 9),
+        axis.text.y=element_text(colour="black", size = 9)) +
+  facet_grid(. ~ Grupo, scales = "free")
+#Histograma dos dados
+histograma
+
+#Teste t-pareado
+t.test(dados$Congruentes,dados$Incongruentes, alternative="two.sided", paired=TRUE, conf.level=0.95)
+
